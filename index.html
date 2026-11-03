@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>万能计算器 · 日常工具箱</title>
+<style>
+:root{--bg:#0a1020;--card:#131b30;--line:#263554;--acc:#6ff2d0;--acc2:#4aa8ff;--tx:#eaf6f2;--sub:#8fa8bb}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font:14px/1.6 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#0a1020,#0d1830 60%,#0a1226);color:var(--tx);min-height:100vh;padding-bottom:calc(70px + env(safe-area-inset-bottom))}
+header{padding:22px 16px 10px;text-align:center}
+header h1{font-size:19px;letter-spacing:3px;background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900}
+header p{font-size:10.5px;color:var(--sub);letter-spacing:2px;margin-top:4px}
+.tabs{display:flex;gap:7px;overflow-x:auto;padding:12px 14px 4px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:8px 14px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--sub);font-size:12.5px;cursor:pointer;transition:.15s;white-space:nowrap}
+.tab.on{background:linear-gradient(135deg,rgba(111,242,208,.16),rgba(74,168,255,.14));border-color:var(--acc);color:var(--acc);font-weight:700}
+.page{display:none;padding:14px}
+.page.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+.row{display:flex;gap:10px;margin-bottom:12px}
+.row>div{flex:1}
+label{display:block;font-size:11px;color:var(--sub);margin-bottom:5px;letter-spacing:1px}
+input,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#0d1426;color:var(--tx);font-size:15px;outline:none}
+input:focus,select:focus{border-color:var(--acc)}
+button.go{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#04121c;font-size:15px;font-weight:900;letter-spacing:2px;cursor:pointer}
+button.go:active{transform:scale(.98)}
+.res{margin-top:14px;padding:15px;border-radius:12px;background:rgba(111,242,208,.07);border:1px dashed rgba(111,242,208,.35);display:none}
+.res b{font-size:24px;color:var(--acc)}
+.res small{display:block;color:var(--sub);font-size:11px;margin-top:6px;line-height:1.8}
+.res .line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed rgba(111,242,208,.12);font-size:12.5px}
+.res .line:last-child{border:0}
+.res .line span:last-child{color:var(--acc);font-weight:700}
+.foot{text-align:center;color:#4a6076;font-size:10px;padding:14px;letter-spacing:2px}
+</style>
+</head>
+<body>
+<header><h1>万能计算器</h1><p>DAILY TOOL BOX · 日常工具箱</p></header>
+<div class="tabs" id="tabs"></div>
+
+<div class="page on" id="p-mort">
+  <div class="card">
+    <div class="row"><div><label>贷款总额（万元）</label><input id="m-amt" type="number" value="100"></div>
+    <div><label>年利率（%）</label><input id="m-rate" type="number" step="0.01" value="3.6"></div></div>
+    <div class="row"><div><label>贷款年限</label><select id="m-year"><option>10</option><option>20</option><option selected>30</option></select></div>
+    <div><label>还款方式</label><select id="m-type"><option value="bx">等额本息</option><option value="bj">等额本金</option></select></div></div>
+    <button class="go" onclick="calcMort()">开始计算</button>
+    <div class="res" id="m-res"></div>
+  </div>
+</div>
+
+<div class="page" id="p-tax">
+  <div class="card">
+    <div class="row"><div><label>月薪（税前）</label><input id="t-sal" type="number" value="10000"></div>
+    <div><label>五险一金比例（%）</label><input id="t-fund" type="number" value="10.5"></div></div>
+    <div class="row"><div><label>专项扣除/月</label><input id="t-ded" type="number" value="1000"></div><div></div></div>
+    <button class="go" onclick="calcTax()">开始计算</button>
+    <div class="res" id="t-res"></div>
+    <small style="display:block;margin-top:10px;color:var(--sub);font-size:10.5px">* 按年度累计预扣法估算（起征点5000/月），实际以工资条为准。</small>
+  </div>
+</div>
+
+<div class="page" id="p-date">
+  <div class="card">
+    <div class="row"><div><label>开始日期</label><input id="d1" type="date"></div>
+    <div><label>结束日期</label><input id="d2" type="date"></div></div>
+    <button class="go" onclick="calcDate()">计算间隔</button>
+    <div class="res" id="d-res"></div>
+  </div>
+</div>
+
+<div class="page" id="p-bmi">
+  <div class="card">
+    <div class="row"><div><label>身高（cm）</label><input id="b-h" type="number" value="170"></div>
+    <div><label>体重（kg）</label><input id="b-w" type="number" value="65"></div></div>
+    <button class="go" onclick="calcBMI()">开始计算</button>
+    <div class="res" id="b-res"></div>
+  </div>
+</div>
+
+<div class="page" id="p-dis">
+  <div class="card">
+    <div class="row"><div><label>商品原价</label><input id="c-p" type="number" value="100"></div></div>
+    <div class="row"><div><label>方案A：折扣%</label><input id="c-a" type="number" value="85" placeholder="85 = 8.5折"></div>
+    <div><label>方案B：满减</label><input id="c-b" type="number" value="20" placeholder="满300减20 填20"></div></div>
+    <div class="row"><div><label>满减门槛</label><input id="c-t" type="number" value="300"></div><div></div></div>
+    <button class="go" onclick="calcDis()">哪个更划算？</button>
+    <div class="res" id="c-res"></div>
+  </div>
+</div>
+
+<div class="page" id="p-conv">
+  <div class="card">
+    <div class="row"><div><label>数值</label><input id="v-in" type="number" value="1"></div>
+    <div><label>类别</label><select id="v-cat" onchange="convUnits()"><option value="len">长度</option><option value="wei">重量</option><option value="tmp">温度</option><option value="dat">存储</option></select></div></div>
+    <div class="row"><div><label>从</label><select id="v-from"></select></div>
+    <div><label>到</label><select id="v-to"></select></div></div>
+    <button class="go" onclick="calcConv()">换算</button>
+    <div class="res" id="v-res"></div>
+  </div>
+</div>
+
+<div class="foot">QUICK TOOLS · 更多工具持续上线</div>
+<script>
+const T=[['mort','🏠 房贷'],['tax','💰 个税'],['date','📅 日期'],['bmi','💪 BMI'],['dis','🛒 比价'],['conv','🔁 换算']];
+const tabs=document.getElementById('tabs');
+T.forEach(([id,label],i)=>{
+  const b=document.createElement('div');b.className='tab'+(i?'':' on');b.textContent=label;
+  b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');};
+  tabs.appendChild(b);
+});
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n).toLocaleString('zh-CN',{maximumFractionDigits:2});
+// 房贷
+function calcMort(){
+  const A=+$('m-amt').value*10000,R=+$('m-rate').value/100,Y=+$('m-year').value,N=Y*12;
+  const mr=R/12,out=$('m-res');
+  let html='';
+  if($('m-type').value==='bx'){
+    const pay=A*mr*Math.pow(1+mr,N)/(Math.pow(1+mr,N)-1);
+    const total=pay*N;
+    html=`<div style="text-align:center"><b>¥${fmt(pay)}</b><small>每月还款（固定）</small></div>
+    <div class="line"><span>还款总额</span><span>¥${fmt(total)}</span></div>
+    <div class="line"><span>支付利息</span><span>¥${fmt(total-A)}</span></div>`;
+  }else{
+    const mp=A/N;let total=0,rows='';
+    for(let i=1;i<=N;i++){const p=A-(i-1)*mp;const pay=mp+p*mr;total+=pay;if(i<=3||i===N)rows+=`<div class="line"><span>第${i}月</span><span>¥${fmt(pay)}</span></div>`;}
+    html=`<div style="text-align:center"><b>¥${fmt(mp+A*mr)}</b><small>首月还款（逐月递减 ¥${fmt(mp*mr)}）</small></div>
+    <div class="line"><span>还款总额</span><span>¥${fmt(total)}</span></div>
+    <div class="line"><span>支付利息</span><span>¥${fmt(total-A)}</span></div>`+rows+`<div class="line"><span>…</span><span>共${N}期</span></div>`;
+  }
+  out.innerHTML=html;out.style.display='block';
+}
+// 个税（年度累计估算）
+function calcTax(){
+  const sal=+$('t-sal').value,fund=sal*+$('t-fund').value/100,ded=+$('t-ded').value;
+  const taxable=Math.max(0,sal-fund-5000-ded)*12;
+  const brackets=[[36000,.03],[144000,.1],[300000,.2],[420000,.25],[660000,.3],[960000,.35],[Infinity,.45]];
+  let tax=0,prev=0;
+  for(const[lim,rate]of brackets){if(taxable>prev){tax+=(Math.min(taxable,lim)-prev)*rate;prev=lim;}else break;}
+  const mtax=tax/12,net=sal-fund-mtax;
+  const out=document.getElementById('t-res');
+  out.innerHTML=`<div style="text-align:center"><b>¥${fmt(net)}</b><small>每月到手（估算）</small></div>
+  <div class="line"><span>五险一金/月</span><span>¥${fmt(fund)}</span></div>
+  <div class="line"><span>月均个税</span><span>¥${fmt(mtax)}</span></div>
+  <div class="line"><span>年度总缴税</span><span>¥${fmt(tax)}</span></div>`;
+  out.style.display='block';
+}
+// 日期
+document.getElementById('d1').value=new Date().toISOString().slice(0,10);
+document.getElementById('d2').value=new Date(Date.now()+864e5*100).toISOString().slice(0,10);
+function calcDate(){
+  const a=new Date($('d1').value),b=new Date($('d2').value);
+  const days=Math.round(Math.abs(b-a)/864e5);
+  const out=document.getElementById('d-res');
+  out.innerHTML=`<div style="text-align:center"><b>${days}</b><small>天</small></div>
+  <div class="line"><span>约合</span><span>${(days/30.44).toFixed(1)} 个月 / ${(days/365.25).toFixed(2)} 年</span></div>
+  <div class="line"><span>工作日（约）</span><span>${Math.round(days*5/7)} 天</span></div>`;
+  out.style.display='block';
+}
+// BMI
+function calcBMI(){
+  const v=+$('b-w').value/Math.pow(+$('b-h').value/100,2);
+  const [tag,c]=v<18.5?['偏瘦','#ffd257']:v<24?['正常','#6ff2d0']:v<28?['超重','#ffb08c']:['肥胖','#ff7b8c'];
+  const ideal=(22*Math.pow(+$('b-h').value/100,2)).toFixed(1);
+  const out=document.getElementById('b-res');
+  out.innerHTML=`<div style="text-align:center"><b style="color:${c}">${v.toFixed(1)}</b><small>${tag}</small></div>
+  <div class="line"><span>理想体重</span><span>${ideal} kg</span></div>`;
+  out.style.display='block';
+}
+// 比价
+function calcDis(){
+  const p=+$('c-p').value,pa=p*+$('c-a').value/100;
+  const pb=(p>=+$('c-t').value)?p-Math.min(+$('c-b').value,+$('c-t').value):p;
+  const better=pa<pb?'A（折扣）':'B（满减）';
+  const out=document.getElementById('c-res');
+  out.innerHTML=`<div class="line"><span>方案A 折后</span><span>¥${fmt(pa)}</span></div>
+  <div class="line"><span>方案B 满减后</span><span>¥${fmt(pb)}${p<+$('c-t').value?'（未达门槛，不优惠）':''}</span></div>
+  <div style="text-align:center;margin-top:8px"><b>选 ${better}</b><small>省 ¥${fmt(Math.abs(pa-pb))}</small></div>`;
+  out.style.display='block';
+}
+// 换算
+const U={len:{米:1,千米:1000,厘米:.01,毫米:.001,英里:1609.344,英尺:.3048,英寸:.0254,里:500},
+wei:{千克:1,克:.001,吨:1000,斤:.5,磅:.45359237,盎司:.0283495},
+tmp:{},dat:{KB:1024,MB:1048576,GB:1073741824,TB:1099511627776}};
+function convUnits(){
+  const cat=$('v-cat').value,from=$('v-from'),to=$('v-to');
+  const keys=cat==='tmp'?['℃','℉','K']:Object.keys(U[cat]);
+  from.innerHTML=to.innerHTML=keys.map(k=>`<option>${k}</option>`).join('');
+  to.selectedIndex=Math.min(1,keys.length-1);
+}
+convUnits();
+function calcConv(){
+  const cat=$('v-cat').value,v=+$('v-in').value,f=$('v-from').value,t=$('v-to').value;
+  let r;
+  if(cat==='tmp'){const c=f==='℃'?v:f==='℉'?(v-32)*5/9:v-273.15;r=t==='℃'?c:t==='℉'?c*9/5+32:c+273.15;}
+  else r=v*U[cat][f]/U[cat][t];
+  const out=document.getElementById('v-res');
+  out.innerHTML=`<div style="text-align:center"><b>${Number(r).toLocaleString('zh-CN',{maximumFractionDigits:6})}</b><small>${f} → ${t}</small></div>`;
+  out.style.display='block';
+}
+</script>
+</body>
+</html>
